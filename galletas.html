@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Producción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============ TOKENS ============ */
+  :root{
+    --rosa: #f6d9e3;
+    --rosa-fuerte: #e79cb5;
+    --lila: #e6def7;
+    --lila-fuerte: #b79ee0;
+    --crema: #fdf6ee;
+    --durazno: #fbe4d1;
+    --blanco: #ffffff;
+    --texto: #5b4a52;
+    --texto-suave: #8d7a83;
+    --linea: #f0e2e8;
+    --sombra: 0 14px 34px rgba(183, 158, 224, 0.20);
+    --sombra-suave: 0 4px 14px rgba(231, 156, 181, 0.16);
+    --radio: 24px;
+    --radio-chico: 14px;
+    --display: 'Fraunces', serif;
+    --cuerpo: 'Quicksand', sans-serif;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  body{
+    font-family: var(--cuerpo);
+    background:
+      radial-gradient(circle at 8% 12%, var(--rosa) 0%, transparent 42%),
+      radial-gradient(circle at 92% 8%, var(--lila) 0%, transparent 38%),
+      radial-gradient(circle at 50% 100%, var(--durazno) 0%, transparent 45%),
+      var(--crema);
+    color: var(--texto);
+    min-height: 100vh;
+    padding: 32px 18px 60px;
+  }
+
+  /* ============ ENCABEZADO ============ */
+  header.principal{
+    max-width: 900px;
+    margin: 0 auto 8px;
+    text-align: center;
+  }
+
+  .cinta{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-weight:600;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rosa-fuerte);
+    background: var(--blanco);
+    padding: 7px 18px;
+    border-radius: 999px;
+    box-shadow: var(--sombra-suave);
+    margin-bottom: 20px;
+  }
+
+  .cinta::before{ content:"✿"; color: var(--lila-fuerte); }
+
+  h1{
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(2.2rem, 5vw, 3.3rem);
+    color: var(--texto);
+    letter-spacing: -0.01em;
+  }
+
+  header.principal p{
+    margin-top: 12px;
+    color: var(--texto-suave);
+    font-size: 1.03rem;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Firma visual: borde festoneado, estilo molde de repostería */
+  .festoneado{
+    max-width: 900px;
+    margin: 26px auto 34px;
+    height: 16px;
+    background-image: radial-gradient(circle at 50% 0, transparent 9px, var(--lila-fuerte) 9.5px);
+    background-size: 26px 16px;
+    background-repeat: repeat-x;
+    background-position: top center;
+    opacity: 0.55;
+  }
+
+  /* ============ CONTENEDOR ============ */
+  main{
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  section.panel{
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+    padding: 32px clamp(18px, 4vw, 42px);
+    border: 1px solid var(--linea);
+  }
+
+  h2.titulo-seccion{
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+  }
+
+  p.subtitulo-seccion{
+    color: var(--texto-suave);
+    font-size: 0.92rem;
+    margin-bottom: 22px;
+  }
+
+  /* ============ TARJETAS DE PRODUCTO ============ */
+  .lista-productos{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+  }
+
+  .tarjeta-producto{
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: var(--radio-chico);
+    border: 2px solid var(--linea);
+    background: var(--crema);
+    padding: 24px 16px 20px;
+    text-align: center;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    outline-offset: 3px;
+  }
+
+  .tarjeta-producto::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height: 5px;
+    background: var(--acento, var(--rosa-fuerte));
+    opacity: 0.55;
+    transition: opacity 0.18s ease, height 0.18s ease;
+  }
+
+  .tarjeta-producto:hover{
+    transform: translateY(-4px);
+    box-shadow: var(--sombra-suave);
+  }
+
+  .tarjeta-producto:hover::before{ opacity: 0.85; }
+
+  .tarjeta-producto:focus-visible{
+    outline: 2px solid var(--lila-fuerte);
+  }
+
+  .tarjeta-producto .icono-envoltura{
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 1.6rem;
+    background: color-mix(in srgb, var(--acento, var(--rosa-fuerte)) 22%, var(--blanco));
+    transition: transform 0.18s ease;
+  }
+
+  .tarjeta-producto:hover .icono-envoltura{ transform: scale(1.06) rotate(-4deg); }
+
+  .tarjeta-producto .nombre{
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 1.04rem;
+    color: var(--texto);
+  }
+
+  .tarjeta-producto.activa{
+    border-color: var(--acento, var(--rosa-fuerte));
+    background: linear-gradient(160deg, color-mix(in srgb, var(--acento, var(--rosa-fuerte)) 16%, var(--blanco)) 0%, var(--blanco) 120%);
+    box-shadow: var(--sombra-suave);
+  }
+
+  .tarjeta-producto.activa::before{ height: 100%; opacity: 0.08; }
+
+  .tarjeta-producto.activa::after{
+    content: "✓";
+    position:absolute;
+    top: 10px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--acento, var(--rosa-fuerte));
+    color: var(--blanco);
+    font-size: 0.75rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  }
+
+  /* ============ FORMULARIO CANTIDAD ============ */
+  .fila-cantidad{
+    display:flex;
+    flex-wrap: wrap;
+    align-items:flex-end;
+    gap: 16px;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px dashed var(--linea);
+  }
+
+  .campo{
+    display:flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1 1 200px;
+  }
+
+  .campo label{
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--texto-suave);
+  }
+
+  .campo input[type="number"]{
+    font-family: var(--cuerpo);
+    font-size: 1.08rem;
+    font-weight: 600;
+    padding: 13px 16px;
+    border-radius: var(--radio-chico);
+    border: 2px solid var(--linea);
+    background: var(--crema);
+    color: var(--texto);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .campo input[type="number"]:focus{
+    outline: none;
+    border-color: var(--lila-fuerte);
+    box-shadow: 0 0 0 4px rgba(183,158,224,0.16);
+  }
+
+  .botones{
+    display:flex;
+    gap: 12px;
+    flex: 1 1 240px;
+  }
+
+  button{
+    font-family: var(--cuerpo);
+    font-weight: 700;
+    font-size: 0.98rem;
+    border: none;
+    border-radius: var(--radio-chico);
+    padding: 14px 20px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  }
+
+  button:active{ transform: scale(0.97); }
+
+  .btn-primario{
+    background: linear-gradient(135deg, var(--rosa-fuerte), var(--lila-fuerte));
+    color: var(--blanco);
+    box-shadow: var(--sombra-suave);
+    flex: 2;
+  }
+
+  .btn-primario:hover{ box-shadow: var(--sombra); transform: translateY(-1px); }
+
+  .btn-secundario{
+    background: var(--crema);
+    color: var(--texto-suave);
+    border: 2px solid var(--linea);
+    flex: 1;
+  }
+
+  .btn-secundario:hover{ border-color: var(--rosa-fuerte); color: var(--rosa-fuerte); }
+
+  /* ============ MENSAJE DE ERROR ============ */
+  .mensaje-error{
+    display:none;
+    align-items:center;
+    gap: 10px;
+    margin-top: 18px;
+    background: #fbeaec;
+    border: 1.5px solid #f0c4ca;
+    color: #a14a55;
+    padding: 13px 16px;
+    border-radius: var(--radio-chico);
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  .mensaje-error.visible{ display:flex; }
+
+  /* ============ RESULTADOS ============ */
+  #seccion-resultados{ display:none; }
+  #seccion-resultados.visible{
+    display:block;
+    animation: aparecer 0.35s ease;
+  }
+
+  @keyframes aparecer{
+    from{ opacity:0; transform: translateY(10px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .resumen-resultado{
+    display:flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items:center;
+    gap: 14px;
+    background: linear-gradient(135deg, var(--lila) 0%, var(--rosa) 100%);
+    border-radius: var(--radio-chico);
+    padding: 22px 24px;
+    margin-bottom: 24px;
+  }
+
+  .resumen-resultado .producto-nombre{
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.35rem;
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+
+  .resumen-resultado .producto-cantidad{
+    background: var(--blanco);
+    padding: 9px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--rosa-fuerte);
+    box-shadow: var(--sombra-suave);
+  }
+
+  .tabla-envoltorio{
+    border-radius: var(--radio-chico);
+    border: 1px solid var(--linea);
+  }
+
+  table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.94rem;
+  }
+
+  thead th{
+    background: var(--crema);
+    text-align:left;
+    font-weight: 700;
+    color: var(--texto-suave);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 13px 16px;
+  }
+
+  thead th:last-child{ text-align:right; }
+
+  tbody td{
+    padding: 13px 16px;
+    border-top: 1px solid var(--linea);
+  }
+
+  tbody tr:nth-child(even){ background: #fdf9f5; }
+  tbody tr:hover{ background: var(--rosa); }
+
+  tbody td:last-child{ text-align:right; }
+
+  .valor-total{
+    display:inline-block;
+    font-weight: 700;
+    color: #5f0925;
+    background: var(--rosa);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+  }
+
+  td.columna-nota{
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+    text-align:left !important;
+    line-height: 1.4;
+  }
+
+  .chip-equivalencia{
+    display:inline-block;
+    font-weight: 700;
+    color: var(--lila-fuerte);
+    background: var(--lila);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    margin-right: 4px;
+  }
+
+  .celda-vacia{
+    color: var(--texto-suave);
+    font-style: italic;
+  }
+
+  .nota-final{
+    margin-top: 22px;
+    display:flex;
+    gap: 10px;
+    align-items:flex-start;
+    background: var(--crema);
+    border-radius: var(--radio-chico);
+    padding: 15px 18px;
+    font-size: 0.9rem;
+    color: var(--texto-suave);
+  }
+
+  .nota-final .marca{ font-size: 1.15rem; }
+
+  footer{
+    text-align:center;
+    margin-top: 40px;
+    font-size: 0.82rem;
+    color: var(--texto-suave);
+  }
+
+  /* accesibilidad: reducir movimiento */
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+
+  @media (max-width: 520px){
+    .botones{ flex-direction: column; }
+    .resumen-resultado{ flex-direction: column; align-items:flex-start; }
+  }
+
+  /* ============ TABLA DE RESULTADOS EN MODO TARJETA (móvil) ============
+     En vez de forzar scroll horizontal, cada fila se convierte en una
+     tarjeta vertical con etiquetas visibles para cada dato. */
+  @media (max-width: 640px){
+    .tabla-envoltorio{
+      border: none;
+    }
+
+    table, tbody, tr, td{
+      display: block;
+      width: 100%;
+    }
+
+    thead{
+      display: none;
+    }
+
+    tbody{
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    tbody tr{
+      background: var(--crema) !important;
+      border: 1px solid var(--linea);
+      border-radius: var(--radio-chico);
+      padding: 6px 16px;
+    }
+
+    tbody td{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-top: 1px dashed var(--linea);
+      text-align: right !important;
+    }
+
+    tbody td:first-child{
+      border-top: none;
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 1.02rem;
+      color: var(--texto);
+    }
+
+    tbody td::before{
+      content: attr(data-label);
+      font-weight: 700;
+      font-size: 0.74rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--texto-suave);
+      text-align: left;
+      flex-shrink: 0;
+    }
+
+    tbody td:first-child::before{
+      content: "";
+    }
+
+    td.columna-nota{
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left !important;
+    }
+
+    td.columna-nota::before{
+      margin-bottom: 4px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="principal">
+  <span class="cinta">Repostería &amp; Producción</span>
+  <h1>Calculadora de Producción</h1>
+  <p>Elige un producto, indica cuántas unidades vas a preparar y obtén la lista exacta de ingredientes.</p>
+</header>
+
+<div class="festoneado" aria-hidden="true"></div>
+
+<main>
+
+  <!-- ============ SELECCIÓN DE PRODUCTO ============ -->
+  <section class="panel">
+    <h2 class="titulo-seccion">1. Elige tu producto</h2>
+    <p class="subtitulo-seccion">Toca una tarjeta para seleccionarla.</p>
+    <div class="lista-productos" id="lista-productos" role="radiogroup" aria-label="Selección de producto"></div>
+
+    <div class="fila-cantidad">
+      <div class="campo">
+        <label for="input-cantidad">Cantidad de unidades</label>
+        <input type="number" id="input-cantidad" min="1" step="1" placeholder="Ej. 12">
+      </div>
+      <div class="botones">
+        <button class="btn-primario" id="btn-calcular">Calcular ingredientes</button>
+        <button class="btn-secundario" id="btn-limpiar">Limpiar</button>
+      </div>
+    </div>
+
+    <div class="mensaje-error" id="mensaje-error">
+      <span>⚠️</span>
+      <span id="texto-error"></span>
+    </div>
+  </section>
+
+  <!-- ============ RESULTADOS ============ -->
+  <section class="panel" id="seccion-resultados">
+    <h2 class="titulo-seccion">Ingredientes necesarios</h2>
+    <p class="subtitulo-seccion">Cantidades calculadas para tu producción.</p>
+
+    <div class="resumen-resultado">
+      <span class="producto-nombre"><span id="resultado-icono"></span><span id="resultado-nombre-producto"></span></span>
+      <span class="producto-cantidad" id="resultado-cantidad-unidades"></span>
+    </div>
+
+    <div class="tabla-envoltorio">
+      <table>
+        <thead>
+          <tr>
+            <th>Ingrediente</th>
+            <th>Por unidad</th>
+            <th>Total necesario</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-tabla-resultados"></tbody>
+      </table>
+    </div>
+
+    <div class="nota-final">
+      <span class="marca">💡</span>
+      <span>Para obtener mayor precisión, pesa los huevos y las yemas sin cáscara.</span>
+    </div>
+  </section>
+
+</main>
+
+<footer>Hecho con cariño para tu producción de repostería 🌸</footer>
+
+<script>
+/* =========================================================================
+   CONFIGURACIÓN DE RECETAS
+   Todos los valores están expresados en gramos, salvo la esencia de
+   vainilla, que se indica en mililitros (ml).
+   ========================================================================= */
+const productos = {
+  chispasChocolate: {
+    nombre: "Chispas de chocolate",
+    icono: "🍪",
+    acento: "#e79cb5",
+    ingredientes: {
+      mantequilla:     { nombre: "Mantequilla",         cantidad: 15.46, unidad: "g" },
+      azucarMoreno:     { nombre: "Azúcar moreno",       cantidad: 13.64, unidad: "g" },
+      azucarBlanca:     { nombre: "Azúcar blanca",       cantidad: 2.28, unidad: "g" },
+      harina:           { nombre: "Harina",              cantidad: 22.73, unidad: "g" },
+      esenciaVainilla:  { nombre: "Esencia de vainilla",  cantidad: 0.46,  unidad: "ml" },
+      huevoEntero:      { nombre: "Huevo entero",        cantidad: 4.55, unidad: "g", gramosPorUnidad: 50 },
+      yemas:            { nombre: "Yemas",               cantidad: 1.64,  unidad: "g", gramosPorUnidad: 18 },
+      maicena:          { nombre: "Maicena",             cantidad: 1.37,  unidad: "g" },
+      bicarbonato:      { nombre: "Bicarbonato",         cantidad: 0.23,  unidad: "g" },
+      polvoHornear:     { nombre: "Polvo para hornear",  cantidad: 0.23,  unidad: "g" },
+      topping:          { nombre: "Topping",             cantidad: 15.46, unidad: "g" }
+    }
+  },
+  macadamia: {
+    nombre: "Macadamia",
+    icono: "🌰",
+    acento: "#b79ee0",
+    ingredientes: {
+      mantequilla:     { nombre: "Mantequilla",         cantidad: 15.46, unidad: "g" },
+      azucarMoreno:     { nombre: "Azúcar moreno",       cantidad: 13.64, unidad: "g" },
+      azucarBlanca:     { nombre: "Azúcar blanca",       cantidad: 2.28, unidad: "g" },
+      harina:           { nombre: "Harina",              cantidad: 22.73, unidad: "g" },
+      esenciaVainilla:  { nombre: "Esencia de vainilla",  cantidad: 0.46,  unidad: "ml" },
+      huevoEntero:      { nombre: "Huevo entero",        cantidad: 4.55, unidad: "g", gramosPorUnidad: 50 },
+      yemas:            { nombre: "Yemas",               cantidad: 1.64,  unidad: "g", gramosPorUnidad: 18 },
+      maicena:          { nombre: "Maicena",             cantidad: 1.37,  unidad: "g" },
+      bicarbonato:      { nombre: "Bicarbonato",         cantidad: 0.23,  unidad: "g" },
+      polvoHornear:     { nombre: "Polvo para hornear",  cantidad: 0.23,  unidad: "g" },
+      toppingMacadamia: { nombre: "Topping (nuez de macadamia)", cantidad: 7.73, unidad: "g" },
+      toppingChocolate: { nombre: "Topping (chocolate blanco)", cantidad: 7.73, unidad: "g" }
+    }
+  },
+  redVelvet: {
+    nombre: "Red velvet",
+    icono: "❤️",
+    acento: "#e2707f",
+    ingredientes: {
+      mantequilla:     { nombre: "Mantequilla",         cantidad: 18, unidad: "g" },
+      azucarMoreno:     { nombre: "Azúcar moreno",       cantidad: 8,  unidad: "g" },
+      azucarBlanca:     { nombre: "Azúcar blanca",       cantidad: 20, unidad: "g" },
+      harina:           { nombre: "Harina",              cantidad: 32, unidad: "g" },
+      esenciaVainilla:  { nombre: "Esencia de vainilla",  cantidad: 1.5, unidad: "ml" },
+      huevoEntero:      { nombre: "Huevo entero",        cantidad: 0,  unidad: "g", gramosPorUnidad: 50 },
+      yemas:            { nombre: "Yemas",               cantidad: 9,  unidad: "g", gramosPorUnidad: 18 },
+      maicena:          { nombre: "Maicena",             cantidad: 3,  unidad: "g" },
+      bicarbonato:      { nombre: "Bicarbonato",         cantidad: 1,  unidad: "g" },
+      polvoHornear:     { nombre: "Polvo para hornear",  cantidad: 0.5, unidad: "g" },
+      quesoCremaFrosting: { nombre: "Queso crema (frosting)", cantidad: 20.84, unidad: "g" },
+      azucarGlasFrosting: { nombre: "Azúcar glas (frosting)", cantidad: 3.75, unidad: "g" },
+      esenciaVainillaFrosting: { nombre: "Esencia de vainilla (frosting)", cantidad: 1.25, unidad: "ml" }
+    }
+  },
+  brownies: {
+    nombre: "Brownies",
+    icono: "🍫",
+    acento: "#c9a27a",
+    ingredientes: {
+      mantequilla:     { nombre: "Mantequilla sin sal",  cantidad: 18.89, unidad: "g" },
+      azucarMoreno:     { nombre: "Azúcar moreno",       cantidad: 11.12, unidad: "g" },
+      azucarBlanca:     { nombre: "Azúcar blanca",       cantidad: 27.78, unidad: "g" },
+      harina:           { nombre: "Harina",              cantidad: 10, unidad: "g" },
+      esenciaVainilla:  { nombre: "Esencia de vainilla", cantidad: 0.56,  unidad: "ml" },
+      huevoEntero:      { nombre: "Huevo entero",        cantidad: 16.67, unidad: "g", gramosPorUnidad: 50 },
+      yemas:            { nombre: "Yemas",               cantidad: 0,  unidad: "g", gramosPorUnidad: 18 },
+      chocolate:        { nombre: "Chocolate",           cantidad: 7.78,  unidad: "g" },
+      cocoa:            { nombre: "Cocoa",               cantidad: 7.23,  unidad: "g" },
+      sal:              { nombre: "Sal",                 cantidad: 0.28,  unidad: "g" },
+      topping:          { nombre: "Topping (chips de chocolate)", cantidad: 10, unidad: "g" }
+    }
+  }
+};
+
+/* =========================================================================
+   ESTADO DE LA INTERFAZ
+   ========================================================================= */
+let productoSeleccionado = null; // clave del producto activo, ej. "brownies"
+
+/* =========================================================================
+   REFERENCIAS AL DOM
+   ========================================================================= */
+const listaProductos       = document.getElementById("lista-productos");
+const inputCantidad        = document.getElementById("input-cantidad");
+const btnCalcular          = document.getElementById("btn-calcular");
+const btnLimpiar           = document.getElementById("btn-limpiar");
+const mensajeError         = document.getElementById("mensaje-error");
+const textoError           = document.getElementById("texto-error");
+const seccionResultados    = document.getElementById("seccion-resultados");
+const resultadoIcono       = document.getElementById("resultado-icono");
+const resultadoNombre      = document.getElementById("resultado-nombre-producto");
+const resultadoCantidad    = document.getElementById("resultado-cantidad-unidades");
+const cuerpoTablaResultados= document.getElementById("cuerpo-tabla-resultados");
+
+/* =========================================================================
+   INTERFAZ: GENERAR TARJETAS DE PRODUCTO
+   ========================================================================= */
+function generarTarjetasProducto() {
+  listaProductos.innerHTML = "";
+  Object.keys(productos).forEach((clave) => {
+    const producto = productos[clave];
+    const tarjeta = document.createElement("div");
+    tarjeta.className = "tarjeta-producto";
+    tarjeta.style.setProperty("--acento", producto.acento || "#e79cb5");
+    tarjeta.setAttribute("role", "radio");
+    tarjeta.setAttribute("tabindex", "0");
+    tarjeta.setAttribute("aria-checked", "false");
+    tarjeta.dataset.clave = clave;
+    tarjeta.innerHTML = `
+      <span class="icono-envoltura">${producto.icono}</span>
+      <span class="nombre">${producto.nombre}</span>
+    `;
+    tarjeta.addEventListener("click", () => seleccionarProducto(clave));
+    tarjeta.addEventListener("keydown", (evento) => {
+      if (evento.key === "Enter" || evento.key === " ") {
+        evento.preventDefault();
+        seleccionarProducto(clave);
+      }
+    });
+    listaProductos.appendChild(tarjeta);
+  });
+}
+
+function seleccionarProducto(clave) {
+  productoSeleccionado = clave;
+  document.querySelectorAll(".tarjeta-producto").forEach((tarjeta) => {
+    const activa = tarjeta.dataset.clave === clave;
+    tarjeta.classList.toggle("activa", activa);
+    tarjeta.setAttribute("aria-checked", activa ? "true" : "false");
+  });
+  ocultarError();
+}
+
+/* =========================================================================
+   LÓGICA DE CÁLCULO (reutilizable para cualquier producto)
+   ========================================================================= */
+// Multiplica cada ingrediente del producto por la cantidad de unidades
+// y devuelve un nuevo objeto con los totales, conservando decimales.
+function calcularIngredientesTotales(producto, unidades) {
+  const totales = {};
+  Object.keys(producto.ingredientes).forEach((claveIngrediente) => {
+    const ingrediente = producto.ingredientes[claveIngrediente];
+    totales[claveIngrediente] = {
+      ...ingrediente,
+      totalCalculado: ingrediente.cantidad * unidades
+    };
+  });
+  return totales;
+}
+
+// Redondea un número a un máximo de 2 decimales (uso interno / cantidad por unidad).
+function redondear(numero) {
+  return Math.round((numero + Number.EPSILON) * 100) / 100;
+}
+
+// Redondea el TOTAL NECESARIO a números enteros, salvo cuando el resultado
+// cae exactamente en .5, en cuyo caso conserva ese único decimal.
+// Ej: 22.73 -> 23   |   22.5 -> 22.5   |   14.2 -> 14
+function redondearTotalMostrado(numero) {
+  const redondeadoAMedio = Math.round(numero * 2) / 2; // aproxima al 0.5 más cercano
+  if (Number.isInteger(redondeadoAMedio)) {
+    return redondeadoAMedio.toString();
+  }
+  return redondeadoAMedio.toFixed(1);
+}
+
+// Construye el texto de equivalencia para huevos enteros o yemas.
+// tipoTexto: "huevo" o "yema" (usado para el mensaje en español).
+function construirTextoEquivalencia(totalGramos, gramosPorUnidad, tipoTexto) {
+  if (totalGramos === 0) {
+    return "No se necesita";
+  }
+  const equivalenciaExacta = totalGramos / gramosPorUnidad;
+  const cantidadRedondeadaArriba = Math.ceil(equivalenciaExacta);
+  const gramosMostrados = redondearTotalMostrado(totalGramos);
+
+  if (tipoTexto === "huevo") {
+    return `<span class="chip-equivalencia">${gramosMostrados} g</span>equivalente a ${redondear(equivalenciaExacta)} huevos. ` +
+           `Usa aproximadamente ${cantidadRedondeadaArriba} huevo(s) y pesa ${gramosMostrados} g sin cáscara.`;
+  }
+  return `<span class="chip-equivalencia">${gramosMostrados} g</span>equivalente a ${redondear(equivalenciaExacta)} yemas. ` +
+         `Separa aproximadamente ${cantidadRedondeadaArriba} yema(s) y pesa ${gramosMostrados} g.`;
+}
+
+/* =========================================================================
+   VALIDACIÓN
+   ========================================================================= */
+function validarEntrada() {
+  if (!productoSeleccionado) {
+    return "Por favor selecciona un producto antes de calcular.";
+  }
+  const valor = inputCantidad.value.trim();
+  const cantidadNumerica = Number(valor);
+
+  if (valor === "" || !Number.isInteger(cantidadNumerica) || cantidadNumerica <= 0) {
+    return "Ingresa una cantidad válida: debe ser un número entero mayor que cero.";
+  }
+  return null; // sin errores
+}
+
+function mostrarError(mensaje) {
+  textoError.textContent = mensaje;
+  mensajeError.classList.add("visible");
+  seccionResultados.classList.remove("visible");
+}
+
+function ocultarError() {
+  mensajeError.classList.remove("visible");
+}
+
+/* =========================================================================
+   RENDERIZADO DE RESULTADOS
+   ========================================================================= */
+function renderizarResultados(producto, unidades, totales) {
+  resultadoIcono.textContent = producto.icono;
+  resultadoNombre.textContent = producto.nombre;
+  resultadoCantidad.textContent = `${unidades} unidad${unidades === 1 ? "" : "es"}`;
+
+  cuerpoTablaResultados.innerHTML = "";
+
+  Object.keys(totales).forEach((claveIngrediente) => {
+    const ingrediente = totales[claveIngrediente];
+    const esHuevoOYema = claveIngrediente === "huevoEntero" || claveIngrediente === "yemas";
+
+    // Omitir ingredientes en cero, salvo huevo/yema que muestran "No se necesita"
+    if (ingrediente.totalCalculado === 0 && !esHuevoOYema) {
+      return;
+    }
+
+    const fila = document.createElement("tr");
+
+    if (esHuevoOYema) {
+      const tipoTexto = claveIngrediente === "huevoEntero" ? "huevo" : "yema";
+      const textoEquivalencia = construirTextoEquivalencia(
+        ingrediente.totalCalculado,
+        ingrediente.gramosPorUnidad,
+        tipoTexto
+      );
+      fila.innerHTML = `
+        <td data-label="Ingrediente">${ingrediente.nombre}</td>
+        <td data-label="Por unidad">${redondear(ingrediente.cantidad)} ${ingrediente.unidad}</td>
+        <td class="columna-nota" data-label="Total necesario">${textoEquivalencia}</td>
+      `;
+    } else {
+      fila.innerHTML = `
+        <td data-label="Ingrediente">${ingrediente.nombre}</td>
+        <td data-label="Por unidad">${redondear(ingrediente.cantidad)} ${ingrediente.unidad}</td>
+        <td data-label="Total necesario"><span class="valor-total">${redondearTotalMostrado(ingrediente.totalCalculado)} ${ingrediente.unidad}</span></td>
+      `;
+    }
+
+    cuerpoTablaResultados.appendChild(fila);
+  });
+
+  seccionResultados.classList.remove("visible");
+  void seccionResultados.offsetWidth; // reinicia la animación en cada cálculo
+  seccionResultados.classList.add("visible");
+  seccionResultados.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/* =========================================================================
+   EVENTOS PRINCIPALES
+   ========================================================================= */
+btnCalcular.addEventListener("click", () => {
+  const errorValidacion = validarEntrada();
+  if (errorValidacion) {
+    mostrarError(errorValidacion);
+    return;
+  }
+  ocultarError();
+
+  const producto = productos[productoSeleccionado];
+  const unidades = Number(inputCantidad.value);
+  const totales = calcularIngredientesTotales(producto, unidades);
+  renderizarResultados(producto, unidades, totales);
+});
+
+btnLimpiar.addEventListener("click", () => {
+  productoSeleccionado = null;
+  inputCantidad.value = "";
+  document.querySelectorAll(".tarjeta-producto").forEach((tarjeta) => {
+    tarjeta.classList.remove("activa");
+    tarjeta.setAttribute("aria-checked", "false");
+  });
+  ocultarError();
+  seccionResultados.classList.remove("visible");
+});
+
+/* =========================================================================
+   INICIO
+   ========================================================================= */
+generarTarjetasProducto();
+</script>
+
+</body>
+</html>

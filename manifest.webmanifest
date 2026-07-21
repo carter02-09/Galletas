@@ -1,0 +1,23 @@
+{
+  "name": "Calculadora de Producción",
+  "short_name": "Producción",
+  "description": "Calculadora de ingredientes para producción de repostería",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#fdf6ee",
+  "theme_color": "#e79cb5",
+  "icons": [
+    {
+      "src": "logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
